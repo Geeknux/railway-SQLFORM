@@ -12,7 +12,6 @@
 
 exports.init = function () {
 	// add orm method
-	// this extention is based on jugglingdb which is used in Express-on-Railway framework
 	railway.orm.AbstractClass.extProperty = extendProperty;
 	railway.orm.AbstractClass.FormSchema = generate_form;
 
@@ -27,7 +26,6 @@ exports.init = function () {
  */
 function extendProperty(obj) {
 	var model = this.schema.definitions[this.modelName];
-	//console.log('DS:' + model.properties['img'].type.name);
 	
 	if(typeof obj === 'object') {
 		Object.keys(obj).forEach(function (o) {
@@ -82,8 +80,7 @@ function generate_form(info, data, fields) {
 
 		return output;
 	} catch (err) {
-		console.log(err);
-		return err;
+		throw new Error(err);
 	}
 
 }
@@ -133,7 +130,13 @@ function getForm(formSchema, extData, request) {
 				if(typeof properties[prop]['widget'] === 'function') {
 					output += properties[prop]['widget'](prop, properties[prop]['value']);
 				} else {
-					output += util.format('<input type="text" id="%s" name="%s" value="%s" class="text%s" %s />', prop, prop, properties[prop]['value'], (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '');
+					if(properties[prop].type.name === 'Text') {
+						output += util.format('<textarea id="%s" name="%s" class="text%s" %s>%s</textarea>', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', properties[prop]['value']);
+					} else if (properties[prop].type.name === 'Boolean') {
+						output += util.format('<input type="checkbox" id="%s" name="%s" class="text%s" %s%s />', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', (properties[prop]['value']) ? ' CHECKED' : '');
+					} else {
+						output += util.format('<input type="text" id="%s" name="%s" value="%s" class="text%s" %s />', prop, prop, properties[prop]['value'], (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '');
+					}
 				}
 
 				output += '</td>';

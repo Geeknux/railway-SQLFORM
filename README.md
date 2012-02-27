@@ -7,20 +7,15 @@ This Modules is for Jugglingdb and written for express-on-railway framework.
 	https://github.com/1602/express-on-railway
 
 ## Features
-1- extend properties, add "Lable", "Comment", "Class", "Style".
-
-2- use custom widget for field, by binding the property to a custom function.
-
-3- generate form on-the fly.
-
-4- using form generator as an Insert or Update form.
-
-5- set custom value for submit button.
+* extend properties, add "Lable", "Comment", "Class", "Style".
+* use custom widget for field, by binding the property to a custom function.
+* generate form on-the fly.
+* using form generator as an Insert or Update form.
+* set custom value for submit button.
 
 ## TO-DO
-1- add tabless feature.
-
-2- add xhr (ajax) request .
+* add tabless feature.
+* add xhr (ajax) request .
 
 ## Usage
 
@@ -44,7 +39,7 @@ Step 2. Extend your Schema;
 	Person.extProperty({
 		email: {label: 'Enter your Email:', comment: 'e.g: john.smith@gmail.com'},
 		name: {label: 'Enter your Full Name:', comment: 'e.g: John Smith'},
-		gender: {label: 'Gender:', comment: '"Male" or "Femail"', style:'width: 40px'}
+		gender: {label: 'Gender:', comment: '"Male" or "Female"', style:'width: 40px'}
 	});
 ```
 
