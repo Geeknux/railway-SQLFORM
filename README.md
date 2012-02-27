@@ -8,13 +8,18 @@ This Modules is for Jugglingdb and written for express-on-railway framework.
 
 ## Features
 1- extend properties, add "Lable", "Comment", "Class", "Style".
+
 2- use custom widget for field, by binding the property to a custom function.
+
 3- generate form on-the fly.
+
 4- using form generator as an Insert or Update form.
+
 5- set custom value for submit button.
 
 ## TO-DO
 1- add tabless feature.
+
 2- add xhr (ajax) request .
 
 ## Usage
@@ -22,7 +27,7 @@ This Modules is for Jugglingdb and written for express-on-railway framework.
 Step 1. Add Plig-in: to "npmfile.js" in express-on-railway
 
 ```javascript
-    require('railway-pagination');
+    require('railway-SQLFORM');
 ```
 
 Step 2. Extend your Schema;
