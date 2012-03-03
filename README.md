@@ -58,7 +58,7 @@ Step 3. Generate Form Schema - you can generate the form schema in your Controll
 Step 4. Get your form html elements with your form schema
 
 ```javascript
-	!= SQLFORM(update_form, {submit_button: {class: 'btn btn-primary', value: 'اSubmit Form'}, hidden: {myhidden: {id: 'hiddenbox1', value:'somevalue'}, myhidden2: {id:'', value:'2'}}}, request)
+	!= SQLFORM(update_form, {submit_button: {class: 'btn btn-primary', value: 'اSubmit Form'}, hidden: {myhidden: {id: 'hiddenbox1', value:'somevalue'}, myhidden2: {id:'', value:'2'}}})
 ```
 
 ## Advance Usage
@@ -94,7 +94,19 @@ in your controller for example you can use fields option, and define your proper
 	});
 ```
 
+### Localization
 
+You can define caption label and comment label right into your `extProperty`, also it is possible to put these into yaml locale file
+
+```javascript
+	en:
+		models:
+			Person:
+				fields:
+					name:'Full name:'
+				comments:
+					name:'e.g: john.smith@gmail.com'
+```
 
 
 ## License

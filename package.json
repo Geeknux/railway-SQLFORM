@@ -2,7 +2,7 @@
   "author": "Amir M. Mahmoudi <a@geeknux.com>",
   "name": "railway-SQLFORM",
   "description": "Sql Form generator module for RailwayJS MVC framework",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "url": ""
   },

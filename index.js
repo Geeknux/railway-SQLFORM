@@ -16,7 +16,7 @@ exports.init = function () {
 	railway.orm.AbstractClass.FormSchema = generate_form;
 
     // add view helper
-    railway.helpers.HelperSet.prototype.SQLFORM = getForm;
+    railway.helpers.HelperSet.prototype.SQLFORM = sqlformHelper;
 };
 
 /**
@@ -91,74 +91,95 @@ function generate_form(info, data, fields) {
  *
  * @param formSchema - Object - this is form object
  * @param extData - Object - This object has recieve some extera data form our form as describe below
- * @param request - Object - this is global request from express should be passed to this module
  *
  * extData = {submit_button:'value', hidden: {fieldName:{id:'',value:''}, fieldName2: {id:'', value:''}} }
  */
-function getForm(formSchema, extData, request) {
-	var output = '';
-
+function sqlformHelper(formSchema, extData) {
+	var self = this;
+	var buf = arguments.callee.caller.buf;
+	
 	if(typeof formSchema === 'object' && typeof formSchema['form'] === 'object') {
-		var output = util.format('<form id="%s" name="%s" enctype="%s" action="%s", method="%s">', formSchema['form']['name'], formSchema['form']['name'], formSchema['form']['enctype'], formSchema['form']['action'], formSchema['form']['method']);
+		var form = formSchema.form,
+			modelName = formSchema['form']['name'];
 
-		// Add crf input if form method is POST
-		if((formSchema['form']['method']).toLowerCase() === 'post') {
-			output += '<input type="hidden" name="_method" value="PUT" />';
-			output += util.format('<input type="hidden" name="%s" value="%s" />', request.csrfParam, request.csrfToken);
-		}
+	    // default method is POST
+	    if (!form.method) {
+	        form.method = 'POST';
+	    }
+
+	    // hook up alternative methods (PUT, DELETE)
+	    var method = _method = form.method.toUpperCase();
+	    if (method != 'GET' && method != 'POST') {
+	        _method = method;
+	        form.method = 'POST';
+	    }
+
+		buf.push(util.format('<form id="%s" name="%s" enctype="%s" action="%s" method="%s">', form.name, form.name, form.enctype, form.action, form.method));
+		buf.push('<input type="hidden" name="' + this.controller.request.csrfParam + '" value="' + this.controller.request.csrfToken + '" />');
+
+	    // alternative method?
+	    console.log('_method:' + _method);
+	    console.log('form.method:' + form.method);
+	    if (_method !== form.method) {
+	        buf.push(railway.helpers.input_tag({type: "hidden", name: "_method", value: _method }));
+	    }
 
 		//Check for extra hidden fields
 		if(typeof extData['hidden'] === 'object') {
 			var hiddens = extData['hidden'];
 			Object.keys(hiddens).forEach(function (hideFields) {
-				output += util.format('<input type="hidden" name="%s" id="%s" value="%s" />', hideFields, hiddens[hideFields]['id'], hiddens[hideFields]['value']);
+				buf.push(railway.helpers.input_tag({type: "hidden", name: hideFields, value:  hiddens[hideFields].value }))
 			});
 		}
+
+	    function makeName(name) {
+	        return form.name + '__' + name ;
+	    }
+
+	    function makeId(prop,name) {
+	        return form.name + '_' + prop + '__' + name;
+	    }		
 
 		var properties = formSchema['form']['properties'];
 		if(typeof properties === 'object') {
-			output += '<table><tbody>'
-			Object.keys(properties).forEach(function (prop) {
-				output += util.format('<tr id="%s">', formSchema['form']['name'] + '_' + prop + '__row');
+			buf.push('<table><tbody>');
 
-				//Title label
-				output += util.format('<td class="rqf_caption"><lable id="%s">%s</lable></td>', formSchema['form']['name'] + '_' + prop + '__caption', (properties[prop]['label']) ? properties[prop]['label'] : prop);
+			Object.keys(properties).forEach(function (prop) {
+				buf.push(util.format('<tr id="%s">', makeId(prop, 'row')));
+
+				// Caption for fields
+				// first check if caption is defined with extend property or not
+				// if not, try to get caption from locales file based on current locale, and if can't find, just set the property name
+				buf.push(util.format('<td class="rqf_caption"><lable id="%s">%s</lable></td>', makeId(prop, 'caption'), properties[prop]['label'] || self.controller.t('models.' + modelName + '.fields.' + prop, prop)));
 
 				// Input control for our fields, the defualt field is Input text box
-				output += '<td class="rqf_field">';
+				buf.push('<td class="rqf_field">');
 				
 				if(typeof properties[prop]['widget'] === 'function') {
-					output += properties[prop]['widget'](prop, properties[prop]['value']);
+					buf.push(properties[prop]['widget'](prop, properties[prop]['value']));
 				} else {
 					if(properties[prop].type.name === 'Text') {
-						output += util.format('<textarea id="%s" name="%s" class="text%s" %s>%s</textarea>', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', properties[prop]['value']);
+						buf.push(util.format('<textarea id="%s" name="%s" class="text%s" %s>%s</textarea>', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', properties[prop]['value']));
 					} else if (properties[prop].type.name === 'Boolean') {
-						output += util.format('<input type="checkbox" id="%s" name="%s" class="text%s" %s%s />', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', (properties[prop]['value']) ? ' CHECKED' : '');
+						buf.push(util.format('<input type="checkbox" id="%s" name="%s" class="text%s" %s%s />', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', (properties[prop]['value']) ? ' CHECKED' : ''));
 					} else {
-						output += util.format('<input type="text" id="%s" name="%s" value="%s" class="text%s" %s />', prop, prop, properties[prop]['value'], (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '');
+						buf.push(util.format('<input type="text" id="%s" name="%s" value="%s" class="text%s" %s />', prop, prop, properties[prop]['value'], (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : ''));
 					}
 				}
+				buf.push('</td>');
 
-				output += '</td>';
 				//Comment Label
-				output += util.format('<td class="rqf_comment"><lable id="%s">%s</lable></td>', formSchema['form']['name'] + '_' + prop + '__comment', (properties[prop]['comment']) ? properties[prop]['comment'] : '');
+				buf.push(util.format('<td class="rqf_comment"><lable id="%s">%s</lable></td>', makeId(prop, 'comment'), properties[prop]['comment'] || self.controller.t('models.' + modelName + '.comments.' + prop) || ''));
 
-				output += '</tr>';
+				buf.push('</tr>');
 			});
 
-			//Add submit button
-			if(extData['submit_button'] !== 'none') {
-				extData['submit_button'] = (typeof extData['submit_button'] === 'object') ? extData['submit_button'] : {};
-				output += util.format('<tr id="rqf_submits"><td colspan="3"><input type="submit" name="rqf_submitform" value="%s"%s%s /></td></tr>', (typeof extData['submit_button']['value'] !== 'undefined') ? extData['submit_button']['value'] : 'Submit', (typeof extData['submit_button']['class'] !== 'undefined') ? ' class="' + extData['submit_button']['class'] + '"' : '', (typeof extData['submit_button']['style'] !== 'undefined') ? ' style="' + extData['submit_button']['style'] + '"' : '');
-			}
-
-			output += '</tbody></table>'
+			buf.push('</tbody></table>');
 		}
 
-		output += '</form>';
+		buf.push('</form>');
 	}
 
-	return output;
 }
 
 /**
