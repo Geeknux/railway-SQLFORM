@@ -174,6 +174,12 @@ function sqlformHelper(formSchema, extData) {
 				buf.push('</tr>');
 			});
 
+			//Add submit button
+			if(extData['submit_button'] !== 'none') {
+				extData['submit_button'] = (typeof extData['submit_button'] === 'object') ? extData['submit_button'] : {};
+				buf.push(util.format('<tr id="rqf_submits"><td colspan="3"><input type="submit" name="rqf_submitform" value="%s"%s%s /></td></tr>', (typeof extData['submit_button']['value'] !== 'undefined') ? extData['submit_button']['value'] : 'Submit', (typeof extData['submit_button']['class'] !== 'undefined') ? ' class="' + extData['submit_button']['class'] + '"' : '', (typeof extData['submit_button']['style'] !== 'undefined') ? ' style="' + extData['submit_button']['style'] + '"' : ''));
+			}
+
 			buf.push('</tbody></table>');
 		}
 
