@@ -92,7 +92,7 @@ function generate_form(info, data, fields) {
  * @param formSchema - Object - this is form object
  * @param extData - Object - This object has recieve some extera data form our form as describe below
  *
- * extData = {submit_button:'value', hidden: {fieldName:{id:'',value:''}, fieldName2: {id:'', value:''}} }
+ * extData = {submit_button:'value', hidden: {fieldName:{id:'',value:''}, fieldName2: {id:'', value:''}}, table_details: '' }
  */
 function sqlformHelper(formSchema, extData) {
 	var self = this;
@@ -142,7 +142,7 @@ function sqlformHelper(formSchema, extData) {
 
 		var properties = formSchema['form']['properties'];
 		if(typeof properties === 'object') {
-			buf.push('<table><tbody>');
+			buf.push(util.format('<table %s><tbody>', extData['table_details'] || ''));
 
 			Object.keys(properties).forEach(function (prop) {
 				buf.push(util.format('<tr id="%s">', makeId(prop, 'row')));
@@ -169,7 +169,12 @@ function sqlformHelper(formSchema, extData) {
 				buf.push('</td>');
 
 				//Comment Label
-				buf.push(util.format('<td class="rqf_comment"><lable id="%s">%s</lable></td>', makeId(prop, 'comment'), properties[prop]['comment'] || self.controller.t('models.' + modelName + '.comments.' + prop) || ''));
+				var comment_lable = properties[prop]['comment'] || self.controller.t('models.' + modelName + '.comments.' + prop) || '';
+				if(comment_lable !== '') {
+					buf.push(util.format('<td class="rqf_comment"><lable id="%s">%s</lable></td>', makeId(prop, 'comment'), comment_lable));
+				} else {
+					buf.push('<td class="rqf_comment"></td>');
+				}
 
 				buf.push('</tr>');
 			});
