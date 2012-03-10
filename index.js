@@ -97,7 +97,8 @@ function generate_form(info, data, fields) {
 function sqlformHelper(formSchema, extData) {
 	var self = this;
 	var buf = arguments.callee.caller.buf;
-	
+
+
 	if(typeof formSchema === 'object' && typeof formSchema['form'] === 'object') {
 		var form = formSchema.form,
 			modelName = formSchema['form']['name'];
@@ -118,8 +119,6 @@ function sqlformHelper(formSchema, extData) {
 		buf.push('<input type="hidden" name="' + this.controller.request.csrfParam + '" value="' + this.controller.request.csrfToken + '" />');
 
 	    // alternative method?
-	    console.log('_method:' + _method);
-	    console.log('form.method:' + form.method);
 	    if (_method !== form.method) {
 	        buf.push(railway.helpers.input_tag({type: "hidden", name: "_method", value: _method }));
 	    }
@@ -147,33 +146,43 @@ function sqlformHelper(formSchema, extData) {
 			Object.keys(properties).forEach(function (prop) {
 				buf.push(util.format('<tr id="%s">', makeId(prop, 'row')));
 
-				// Caption for fields
-				// first check if caption is defined with extend property or not
-				// if not, try to get caption from locales file based on current locale, and if can't find, just set the property name
-				buf.push(util.format('<td class="rqf_caption"><lable id="%s">%s</lable></td>', makeId(prop, 'caption'), properties[prop]['label'] || self.controller.t('models.' + modelName + '.fields.' + prop, prop)));
-
-				// Input control for our fields, the defualt field is Input text box
-				buf.push('<td class="rqf_field">');
-				
-				if(typeof properties[prop]['widget'] === 'function') {
-					buf.push(properties[prop]['widget'](prop, properties[prop]['value']));
-				} else {
-					if(properties[prop].type.name === 'Text') {
-						buf.push(util.format('<textarea id="%s" name="%s" class="text%s" %s>%s</textarea>', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', properties[prop]['value']));
-					} else if (properties[prop].type.name === 'Boolean') {
-						buf.push(util.format('<input type="checkbox" id="%s" name="%s" class="text%s" %s%s />', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', (properties[prop]['value']) ? ' CHECKED' : ''));
-					} else {
-						buf.push(util.format('<input type="text" id="%s" name="%s" value="%s" class="text%s" %s />', prop, prop, properties[prop]['value'], (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : ''));
+				if(prop.substr(0,12) === '__splitter__') {	
+					if(typeof properties[prop].widget === "function") {
+						buf.push('<td class="rqf_splitter" colspan="3">' + properties[prop].widget(properties[prop].args || '') + '</td>');
+					} else if (properties[prop].widget.toUpperCase() === 'HR') {
+						buf.push('<td class="rqf_splitter" colspan="3"><hr /></td>');
 					}
-				}
-				buf.push('</td>');
-
-				//Comment Label
-				var comment_lable = properties[prop]['comment'] || self.controller.t('models.' + modelName + '.comments.' + prop) || '';
-				if(comment_lable !== '') {
-					buf.push(util.format('<td class="rqf_comment"><lable id="%s">%s</lable></td>', makeId(prop, 'comment'), comment_lable));
 				} else {
-					buf.push('<td class="rqf_comment"></td>');
+
+					// Caption for fields
+					// first check if caption is defined with extend property or not
+					// if not, try to get caption from locales file based on current locale, and if can't find, just set the property name
+					buf.push(util.format('<td class="rqf_caption"><lable id="%s">%s</lable></td>', makeId(prop, 'caption'), properties[prop]['label'] || self.controller.t('models.' + modelName + '.fields.' + prop, prop)));
+
+					// Input control for our fields, the defualt field is Input text box
+					buf.push('<td class="rqf_field">');
+					
+					if(typeof properties[prop]['widget'] === 'function') {
+						buf.push(properties[prop]['widget'](prop, properties[prop]['value']));
+					} else {
+						if(properties[prop].type.name === 'Text') {
+							buf.push(util.format('<textarea id="%s" name="%s" class="text%s" %s>%s</textarea>', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', properties[prop]['value']));
+						} else if (properties[prop].type.name === 'Boolean') {
+							buf.push(util.format('<input type="checkbox" id="%s" name="%s" class="text%s" %s%s />', prop, prop, (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : '', (properties[prop]['value']) ? ' CHECKED' : ''));
+						} else {
+							buf.push(util.format('<input type="text" id="%s" name="%s" value="%s" class="text%s" %s />', prop, prop, properties[prop]['value'], (properties[prop]['class']) ? ' ' + properties[prop]['class'] : '', (properties[prop]['style']) ? ' style="' + properties[prop]['style'] + '"' : ''));
+						}
+					}
+					buf.push('</td>');
+
+					//Comment Label
+					var comment_lable = properties[prop]['comment'] || self.controller.t('models.' + modelName + '.comments.' + prop) || '';
+					if(comment_lable !== '') {
+						buf.push(util.format('<td class="rqf_comment"><lable id="%s">%s</lable></td>', makeId(prop, 'comment'), comment_lable));
+					} else {
+						buf.push('<td class="rqf_comment"></td>');
+					}
+
 				}
 
 				buf.push('</tr>');
